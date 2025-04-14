@@ -4,7 +4,7 @@ from openai import OpenAI
 from io import BytesIO
 import matplotlib.pyplot as plt
 import re
-
+import plotly.express as px  # 추가
 # 페이지 설정
 st.set_page_config(page_title="엑셀 편집 + GPT 분석", layout="wide")
 st.sidebar.title("📁 메뉴 선택")
@@ -153,66 +153,65 @@ elif menu == "🤖 GPT 분석 페이지":
                 st.success("✅ GPT 일반 분석 결과")
                 st.markdown(st.session_state.general_response)
 
-        # 시각화 질문
+    # 시각화 질문
         with col2:
             st.markdown("### 📊 시각화 관련 질문")
             viz_question = st.text_area("📈 질문을 입력하세요", placeholder="예: 제품별 판매량을 막대 그래프로 보여주세요.", key="viz_q")
+            
             if st.button("📊 GPT에게 시각화 요청", key="viz_btn"):
                 try:
                     df_csv = st.session_state.merged_df.to_csv(index=False)
                     viz_prompt = f"""
-다음은 사용자가 업로드한 엑셀 데이터를 CSV 형태로 제공한 것입니다. 이 데이터를 분석해서 사용자 시각화 질문에 답변해주세요.
+        다음은 사용자가 업로드한 엑셀 데이터를 CSV 형태로 제공한 것입니다. 이 데이터를 분석해서 사용자 시각화 질문에 대해 plotly.express 기반의 파이썬 코드로 응답해주세요.
 
-[코드와 같이 출력될 경우]
-1. df는 이미 정의되어 있으므로, df를 새로 생성하지 말고 바로 사용
-2. 코드를 제외한 모든 텍스트를 출력하지 않음
-3. **matplotlib 사용 시 koreanize-matplotlib를 사용**
-4. 만약 텍스트가 출력되면 앞에 #을 붙여 출력
+        [지시사항]
+        1. 반드시 plotly.express만 사용 (px.bar, px.line 등)
+        2. df는 이미 정의되어 있으므로 새로 생성하지 말 것
+        3. 코드 외 텍스트는 출력하지 말고, 설명은 # 주석으로만 작성
+        4. 출력은 반드시 ```python 코드블록``` 안에만 작성
 
-[CSV 데이터]
-{df_csv}
+        [CSV 데이터]
+        {df_csv}
 
-[시각화 질문]
-{viz_question}
-"""
+        [시각화 질문]
+        {viz_question}
+        """
                     response = client.chat.completions.create(
                         model="gpt-4o",
                         messages=[
-                            {"role": "system", "content": "당신은 데이터 분석 전문가입니다."},
+                            {"role": "system", "content": "당신은 데이터 시각화 전문가이며, 반드시 plotly로만 코드를 작성합니다."},
                             {"role": "user", "content": viz_prompt}
                         ],
                         temperature=0.5
                     )
+
                     raw = response.choices[0].message.content
                     match = re.search(r"```(?:python)?\n(.*?)```", raw, re.DOTALL)
                     code = match.group(1).strip() if match else raw.strip()
 
-                    # GPT 코드 저장
                     st.session_state.viz_code = code
 
-                    # 실행 및 시각화 저장
                     df = st.session_state.merged_df.copy()
-                    local_vars = {"df": df, "plt": plt, "pd": pd}
+                    local_vars = {"df": df, "px": px, "pd": pd}
                     exec(code, {}, local_vars)
 
-                    buf = BytesIO()
-                    plt.savefig(buf, format="png", bbox_inches='tight')
-                    buf.seek(0)
-                    st.session_state.viz_image = buf
+                    fig = None
+                    for var in local_vars.values():
+                        if hasattr(var, "to_plotly_json"):  # plotly graph 객체 탐색
+                            fig = var
+                            break
+
+                    if fig:
+                        st.session_state.viz_figure = fig
+                    else:
+                        st.warning("✅ 실행은 되었지만 plotly 그래프가 탐지되지 않았습니다.")
 
                 except Exception as e:
-                    st.session_state.viz_code = f"# ❌ GPT 호출 실패: {e}"
-                    st.session_state.viz_image = None
+                    st.session_state.viz_code = f"# ❌ GPT 호출 실패 또는 실행 에러: {e}"
+                    st.session_state.viz_figure = None
 
             if "viz_code" in st.session_state:
                 st.code(st.session_state.viz_code, language='python')
-                if st.session_state.viz_image:
-                    st.pyplot(plt)
-                    st.download_button(
-                        label="📸 그래프 PNG 다운로드",
-                        data=st.session_state.viz_image,
-                        file_name="graph.png",
-                        mime="image/png"
-                    )
-    else:
-        st.warning("먼저 '엑셀 편집 페이지'에서 병합된 데이터를 생성해주세요.")
+                if st.session_state.viz_figure:
+                    st.plotly_chart(st.session_state.viz_figure, use_container_width=True)
+

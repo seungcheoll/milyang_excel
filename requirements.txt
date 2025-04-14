@@ -3,6 +3,5 @@ pandas
 matplotlib
 openai
 xlsxwriter
-setuptools
-koreanize-matplotlib
 openpyxl
+plotly

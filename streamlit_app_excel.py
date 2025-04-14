@@ -252,5 +252,5 @@ elif menu == "🤖 GPT 분석 페이지":
                 st.code(st.session_state.viz_code, language='python')
                 if st.session_state.viz_figure:
                     st.plotly_chart(st.session_state.viz_figure, use_container_width=True)
-else:
-    st.warning("먼저 '엑셀 편집 페이지'에서 병합된 데이터를 생성해주세요.")
+    else:
+        st.warning("먼저 '엑셀 편집 페이지'에서 병합된 데이터를 생성해주세요.")

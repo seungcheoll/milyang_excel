@@ -4,7 +4,9 @@ from openai import OpenAI
 from io import BytesIO
 import matplotlib.pyplot as plt
 import re
-import plotly.express as px  # 추가
+import plotly.express as px
+import ast
+
 # 페이지 설정
 st.set_page_config(page_title="엑셀 편집 + GPT 분석", layout="wide")
 st.sidebar.title("📁 메뉴 선택")
@@ -17,6 +19,39 @@ client = OpenAI(api_key=api_key)
 # 공통 저장소
 if "merged_df" not in st.session_state:
     st.session_state.merged_df = None
+
+# 안전 코드 검사기
+class SafetyVisitor(ast.NodeVisitor):
+    def __init__(self):
+        self.safe = True
+
+    def visit_Import(self, node):
+        for alias in node.names:
+            if alias.name in ("os", "sys", "subprocess", "shutil", "pickle", "socket"):
+                self.safe = False
+
+    def visit_ImportFrom(self, node):
+        if node.module in ("os", "sys", "subprocess", "shutil", "pickle", "socket"):
+            self.safe = False
+
+    def visit_Call(self, node):
+        if isinstance(node.func, ast.Name) and node.func.id in ("eval", "exec", "open", "input", "compile", "__import__"):
+            self.safe = False
+        self.generic_visit(node)
+
+    def visit_While(self, node):
+        if isinstance(node.test, ast.Constant) and node.test.value is True:
+            self.safe = False
+        self.generic_visit(node)
+
+def is_safe_ast(code: str) -> bool:
+    try:
+        tree = ast.parse(code)
+        visitor = SafetyVisitor()
+        visitor.visit(tree)
+        return visitor.safe
+    except SyntaxError:
+        return False
 
 # 📂 엑셀 편집 페이지
 if menu == "📂 엑셀 편집 페이지":
@@ -153,7 +188,7 @@ elif menu == "🤖 GPT 분석 페이지":
                 st.success("✅ GPT 일반 분석 결과")
                 st.markdown(st.session_state.general_response)
 
-    # 시각화 질문
+        # 시각화 질문
         with col2:
             st.markdown("### 📊 시각화 관련 질문")
             viz_question = st.text_area("📈 질문을 입력하세요", placeholder="예: 제품별 판매량을 막대 그래프로 보여주세요.", key="viz_q")
@@ -162,20 +197,20 @@ elif menu == "🤖 GPT 분석 페이지":
                 try:
                     df_csv = st.session_state.merged_df.to_csv(index=False)
                     viz_prompt = f"""
-        다음은 사용자가 업로드한 엑셀 데이터를 CSV 형태로 제공한 것입니다. 이 데이터를 분석해서 사용자 시각화 질문에 대해 plotly.express 기반의 파이썬 코드로 응답해주세요.
+다음은 사용자가 업로드한 엑셀 데이터를 CSV 형태로 제공한 것입니다. 이 데이터를 분석해서 사용자 시각화 질문에 대해 plotly.express 기반의 파이썬 코드로 응답해주세요.
 
-        [지시사항]
-        1. 반드시 plotly.express만 사용 (px.bar, px.line 등)
-        2. df는 이미 정의되어 있으므로 새로 생성하지 말 것
-        3. 코드 외 텍스트는 출력하지 말고, 설명은 # 주석으로만 작성
-        4. 출력은 반드시 ```python 코드블록``` 안에만 작성
+[지시사항]
+1. 반드시 plotly.express만 사용 (px.bar, px.line 등)
+2. df는 이미 정의되어 있으므로 새로 생성하지 말 것
+3. 코드 외 텍스트는 출력하지 말고, 설명은 # 주석으로만 작성
+4. 출력은 반드시 ```python 코드블록``` 안에만 작성
 
-        [CSV 데이터]
-        {df_csv}
+[CSV 데이터]
+{df_csv}
 
-        [시각화 질문]
-        {viz_question}
-        """
+[시각화 질문]
+{viz_question}
+"""
                     response = client.chat.completions.create(
                         model="gpt-4o",
                         messages=[
@@ -193,18 +228,21 @@ elif menu == "🤖 GPT 분석 페이지":
 
                     df = st.session_state.merged_df.copy()
                     local_vars = {"df": df, "px": px, "pd": pd}
-                    exec(code, {}, local_vars)
 
-                    fig = None
-                    for var in local_vars.values():
-                        if hasattr(var, "to_plotly_json"):  # plotly graph 객체 탐색
-                            fig = var
-                            break
-
-                    if fig:
-                        st.session_state.viz_figure = fig
+                    if is_safe_ast(code):
+                        exec(code, {}, local_vars)
+                        fig = None
+                        for var in local_vars.values():
+                            if hasattr(var, "to_plotly_json"):
+                                fig = var
+                                break
+                        st.session_state.viz_figure = fig if fig else None
+                        if not fig:
+                            st.warning("✅ 실행은 되었지만 plotly 그래프가 탐지되지 않았습니다.")
                     else:
-                        st.warning("✅ 실행은 되었지만 plotly 그래프가 탐지되지 않았습니다.")
+                        st.session_state.viz_code = "# ❌ 코드 실행 차단됨: 위험한 코드가 감지되었습니다."
+                        st.session_state.viz_figure = None
+                        st.warning("⚠️ GPT 코드에 위험한 명령이 포함되어 있어 실행을 차단했습니다.")
 
                 except Exception as e:
                     st.session_state.viz_code = f"# ❌ GPT 호출 실패 또는 실행 에러: {e}"
@@ -214,4 +252,5 @@ elif menu == "🤖 GPT 분석 페이지":
                 st.code(st.session_state.viz_code, language='python')
                 if st.session_state.viz_figure:
                     st.plotly_chart(st.session_state.viz_figure, use_container_width=True)
-
+else:
+    st.warning("먼저 '엑셀 편집 페이지'에서 병합된 데이터를 생성해주세요.")

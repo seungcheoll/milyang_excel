@@ -152,8 +152,6 @@ elif menu == "🤖 GPT 분석 페이지":
             if "general_response" in st.session_state:
                 st.success("✅ GPT 일반 분석 결과")
                 st.markdown(st.session_state.general_response)
-        # 구분선 삽입
-        st.divider()
 
         # 시각화 질문
         with col2:

@@ -4,3 +4,4 @@ matplotlib
 openai
 xlsxwriter
 koreanize-matplotlib
+openpyxl

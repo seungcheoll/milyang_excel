@@ -1,8 +1,7 @@
 streamlit
 pandas
-matplotlib==3.7.3
+matplotlib
 openai
 xlsxwriter
-koreanize-matplotlib==0.1.1
+koreanize-matplotlib
 openpyxl
-distutils

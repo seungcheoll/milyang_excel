@@ -9,7 +9,15 @@ import ast
 
 # Streamlit 웹앱 기본 설정
 st.set_page_config(page_title="엑셀 편집 + GPT 분석", layout="wide")
-
+# ✅ 여기에 숨김 CSS 추가
+hide_streamlit_style = """
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 # 사이드바 메뉴 구성
 st.sidebar.title("📁 메뉴 선택")
 menu = st.sidebar.radio("기능 선택", ["📂 엑셀 편집 페이지", "🤖 GPT 분석 페이지"])

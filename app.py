@@ -84,25 +84,32 @@ elif menu == "🔍 문제 검수 및 다운로드":
                 if st.button("➡️ 다음", use_container_width=True) and index < len(df) - 1:
                     st.session_state.current_index += 1
                     st.rerun()
-
+                    
             col_btn1, col_btn2 = st.columns(2)
             with col_btn1:
                 if st.button("✅ 검수 완료", use_container_width=True):
                     df.at[index, 'status'] = '검수 완료'
                     st.success("검수 완료로 처리됨.")
-                    next_todo = df[df['status'] == '']
-                    if not next_todo.empty:
-                        st.session_state.current_index = next_todo.index[0]
+                    df_todo = df[df['status'] == '']
+                    if not df_todo.empty:
+                        next_index = df_todo.index[0]
+                    else:
+                        next_index = min(index + 1, len(df) - 1)  # 마지막 문제 유지
+                    st.session_state.current_index = next_index
                     st.rerun()
+            
             with col_btn2:
                 if st.button("⏸ 보류", use_container_width=True):
                     df.at[index, 'status'] = '보류'
                     st.warning("보류로 처리됨.")
-                    next_todo = df[df['status'] == '']
-                    if not next_todo.empty:
-                        st.session_state.current_index = next_todo.index[0]
+                    df_todo = df[df['status'] == '']
+                    if not df_todo.empty:
+                        next_index = df_todo.index[0]
+                    else:
+                        next_index = min(index + 1, len(df) - 1)  # 마지막 문제 유지
+                    st.session_state.current_index = next_index
                     st.rerun()
-
+                    
         # 왼쪽: 검수 완료 목록
         with col_left:
             st.markdown("### ✅ 검수 완료 목록")

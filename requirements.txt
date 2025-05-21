@@ -5,3 +5,4 @@ openai
 xlsxwriter
 openpyxl
 plotly
+io

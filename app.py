@@ -43,7 +43,7 @@ elif menu == "🔍 문제 검수 및 다운로드":
         col_top1, col_top2 = st.columns([3, 1])
         with col_top1:
             with st.form("move_form", clear_on_submit=True):
-                input_number = st.text_input("🔍 문제 번호 이동 (1부터 시작)",placeholder="번호 입력 / 예시)30" label_visibility="collapsed",key="move_number_input")
+                input_number = st.text_input("🔍 문제 번호 이동 (1부터 시작)",placeholder="번호 입력 / 예시)30" ,label_visibility="collapsed",key="move_number_input")
                 submitted = st.form_submit_button("이동")
                 if submitted and input_number:
                     target = int(input_number) - 1

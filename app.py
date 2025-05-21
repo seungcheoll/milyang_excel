@@ -56,7 +56,7 @@ elif menu == "🔍 문제 검수 및 다운로드":
             output_all = BytesIO()
             with pd.ExcelWriter(output_all, engine='xlsxwriter') as writer:
                 df.to_excel(writer, index=False, sheet_name='전체문제')
-            st.download_button("📥 전체 문제 다운로드", output_all.getvalue(), "전체문제_status포함.xlsx",
+            st.download_button("📥 전체 문제 다운로드", output_all.getvalue(), "output_check.xlsx",
                                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
         index = st.session_state.current_index

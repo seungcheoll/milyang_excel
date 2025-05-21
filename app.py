@@ -105,11 +105,15 @@ elif menu == "🔍 문제 검수 및 다운로드":
                     st.rerun()
 
         # 오른쪽: 전체 문제 리스트
-        with col_right:
-            st.markdown("### 🗂 문제 리스트 (스크롤 고정)")
         
-            with st.expander("문제 전체 목록 보기", expanded=True):
-                for i in df.index:
-                    r = df.loc[i]
-                    status = r['status'] if r['status'] else '미검수'
-                    st.markdown(f"- 문제 {i + 1} / Q_IDX: {r['q_idx']} **[{status}]**")
+        with col_right:
+            st.markdown("### 🗂 문제 리스트 (고정 높이 스크롤 박스)")
+        
+            list_html = "<div style='height: 400px; overflow-y: auto;'>"
+            for i in df.index:
+                r = df.loc[i]
+                status = r['status'] if r['status'] else '미검수'
+                list_html += f"<p>문제 {i + 1} / Q_IDX: {r['q_idx']} <b>[{status}]</b></p>"
+            list_html += "</div>"
+        
+            st.markdown(list_html, unsafe_allow_html=True)

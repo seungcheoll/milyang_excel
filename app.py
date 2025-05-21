@@ -46,15 +46,12 @@ elif menu == "🔍 문제 검수 및 다운로드":
                 input_number = st.text_input("🔍 문제 번호 이동 (1부터 시작)", key="move_number_input")
                 submitted = st.form_submit_button("이동")
                 if submitted and input_number:
-                    try:
-                        target = int(input_number) - 1
-                        if 0 <= target < len(df):
-                            st.session_state.current_index = target
-                            st.rerun()
-                        else:
-                            st.warning("유효한 문제 번호 범위를 입력하세요.")
-                    except:
-                        st.error("숫자 형식으로 입력하세요.")
+                    target = int(input_number) - 1
+                    if 0 <= target < len(df):
+                        st.session_state.current_index = target
+                        st.rerun()
+                    else:
+                        st.warning("유효한 문제 번호 범위를 입력하세요.")
         with col_top2:
             output_all = BytesIO()
             with pd.ExcelWriter(output_all, engine='xlsxwriter') as writer:
@@ -113,7 +110,15 @@ elif menu == "🔍 문제 검수 및 다운로드":
                 st.info("검수 완료 항목 없음")
             else:
                 for i, r in df_done.iterrows():
-                    st.markdown(f"- 문제 {i + 1} / Q_IDX: {r['q_idx']}")
+                    col_done_text, col_done_btn = st.columns([3, 1])
+                    with col_done_text:
+                        st.markdown(f"- 문제 {i + 1} / Q_IDX: {r['q_idx']}")
+                    with col_done_btn:
+                        if st.button(f"❌ 삭제", key=f"delete_done_{i}"):
+                            st.session_state.df.drop(index=i, inplace=True)
+                            st.session_state.df.reset_index(drop=True, inplace=True)
+                            st.success("✅ 삭제 완료")
+                            st.rerun()
 
         # 오른쪽: 보류 목록
         with col_right:
@@ -122,4 +127,12 @@ elif menu == "🔍 문제 검수 및 다운로드":
                 st.info("보류 항목 없음")
             else:
                 for i, r in df_hold.iterrows():
-                    st.markdown(f"- 문제 {i + 1} / Q_IDX: {r['q_idx']}")
+                    col_hold_text, col_hold_btn = st.columns([3, 1])
+                    with col_hold_text:
+                        st.markdown(f"- 문제 {i + 1} / Q_IDX: {r['q_idx']}")
+                    with col_hold_btn:
+                        if st.button(f"❌ 삭제", key=f"delete_hold_{i}"):
+                            st.session_state.df.drop(index=i, inplace=True)
+                            st.session_state.df.reset_index(drop=True, inplace=True)
+                            st.success("✅ 삭제 완료")
+                            st.rerun()

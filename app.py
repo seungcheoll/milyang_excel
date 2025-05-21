@@ -26,7 +26,6 @@ elif page == "📝 문제 검수":
     else:
         # 엑셀 원본 로드 (index 유지)
         df_all = pd.read_excel(st.session_state.uploaded_file, index_col=0)
-        st.write("업로드된 데이터 컬럼 확인:", df_all.columns.tolist())
         if 'status' not in df_all.columns:
             df_all['status'] = ""
 

@@ -46,15 +46,13 @@ elif menu == "🔍 문제 검수 및 다운로드":
                 input_number = st.text_input("🔍 문제 번호 이동 (1부터 시작)", key="move_number_input")
                 submitted = st.form_submit_button("이동")
                 if submitted and input_number:
-                    try:
-                        target = int(input_number) - 1
-                        if 0 <= target < len(df):
-                            st.session_state.current_index = target
-                            st.rerun()
-                        else:
-                            st.warning("유효한 문제 번호 범위를 입력하세요.")
-                    except:
-                        st.error("숫자 형식으로 입력하세요.")
+                    target = int(input_number) - 1
+                    if 0 <= target < len(df):
+                        st.session_state.current_index = target
+                        st.rerun()
+                    else:
+                        st.warning("유효한 문제 번호 범위를 입력하세요.")
+
         with col_top2:
             output_all = BytesIO()
             with pd.ExcelWriter(output_all, engine='xlsxwriter') as writer:

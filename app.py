@@ -113,7 +113,8 @@ elif menu == "🔍 문제 검수 및 다운로드":
             for i in df.index:
                 r = df.loc[i]
                 status = r['status'] if r['status'] else '미검수'
-                list_html += f"<p>문제 {i + 1} / Q_IDX: {r['q_idx']} <b>[{status}]</b></p>"
+                topic = r['관련 주제'] if pd.notna(r['관련 주제']) else '(주제 없음)'
+                list_html += f"<p>문제 {i + 1} / Q_IDX: {r['q_idx']} / 주제:{topic} <b>[{status}]</b></p>"
             list_html += "</div>"
         
             st.markdown(list_html, unsafe_allow_html=True)

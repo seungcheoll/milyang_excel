@@ -59,7 +59,7 @@ elif menu == "🔍 문제 검수 및 다운로드":
                 df.to_excel(writer, index=False, sheet_name='전체문제')
             st.download_button("📥 어디가시기 전에 다운로드 필수", output_all.getvalue(), "output_check.xlsx",
                                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            st.warning("⚠️ 새로고침 절대 금지 > 다운로드 후 해당 파일 재업로드")
+            st.error("⚠️ 새로고침 절대 금지 > 다운로드 후 해당 파일 재업로드")
             
         # 본문 영역: 왼쪽 검수 화면 / 오른쪽 문제 리스트
         col_left, col_right = st.columns([4, 1.5])

@@ -105,7 +105,7 @@ elif menu == "🔍 문제 검수 및 다운로드":
         # 오른쪽: 전체 문제 리스트
         
         with col_right:
-            st.markdown("### 🗂 문제 리스트 (고정 높이 스크롤 박스)")
+            st.markdown("### 🗂 문제 리스트")
         
             list_html = "<div style='height: 700px; overflow-y: auto;'>"
             for i in df.index:

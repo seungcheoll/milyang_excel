@@ -109,7 +109,7 @@ elif menu == "🔍 문제 검수 및 다운로드":
         with col_right:
             st.markdown("### 🗂 문제 리스트 (고정 높이 스크롤 박스)")
         
-            list_html = "<div style='height: 400px; overflow-y: auto;'>"
+            list_html = "<div style='height: 700px; overflow-y: auto;'>"
             for i in df.index:
                 r = df.loc[i]
                 status = r['status'] if r['status'] else '미검수'

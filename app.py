@@ -106,45 +106,10 @@ elif menu == "🔍 문제 검수 및 다운로드":
 
         # 오른쪽: 전체 문제 리스트
         with col_right:
-            st.markdown("### 🗂 문제 리스트 (페이지네이션)")
+            st.markdown("### 🗂 문제 리스트 (스크롤 고정)")
         
-            # 페이지네이션 설정
-            page_size = 10
-            total = len(df)
-            total_pages = (total - 1) // page_size + 1
-        
-            if "list_page" not in st.session_state:
-                st.session_state.list_page = 1
-        
-            page = st.session_state.list_page
-            start_idx = (page - 1) * page_size
-            end_idx = min(start_idx + page_size, total)
-        
-            # 현재 페이지 데이터 추출
-            page_df = df.iloc[start_idx:end_idx].copy()
-            page_df = page_df.reset_index()  # 원래 인덱스 보존
-        
-            # 상태 표시 추가
-            page_df['표시'] = [
-                f"문제 {i + 1} / Q_IDX: {row['q_idx']} [{row['status'] if row['status'] else '미검수'}]"
-                for i, row in page_df.iterrows()
-            ]
-        
-            for idx, row in page_df.iterrows():
-                btn_label = row['표시']
-                if st.button(btn_label, key=f"goto_page_{row['index']}"):
-                    st.session_state.current_index = row['index']
-                    st.rerun()
-        
-            # 페이지 이동 버튼
-            col_prev, col_page, col_next = st.columns([1, 2, 1])
-            with col_prev:
-                if st.button("⬅ 이전 페이지") and page > 1:
-                    st.session_state.list_page -= 1
-                    st.rerun()
-            with col_page:
-                st.markdown(f"**{page} / {total_pages} 페이지**")
-            with col_next:
-                if st.button("다음 페이지 ➡") and page < total_pages:
-                    st.session_state.list_page += 1
-                    st.rerun()
+            with st.expander("문제 전체 목록 보기", expanded=True):
+                for i in df.index:
+                    r = df.loc[i]
+                    status = r['status'] if r['status'] else '미검수'
+                    st.markdown(f"- 문제 {i + 1} / Q_IDX: {r['q_idx']} **[{status}]**")

@@ -22,7 +22,6 @@ if page == "📤 엑셀 업로드":
 
 # 페이지 2: 문제 검수
 elif page == "📝 문제 검수":
-    st.title("📝 문제 검수 페이지")
 
     if not st.session_state.uploaded_file:
         st.warning("먼저 왼쪽 메뉴에서 📤 엑셀 파일을 업로드해주세요.")
@@ -40,7 +39,7 @@ elif page == "📝 문제 검수":
 
         # 문제 번호 이동
         with st.form("move_form", clear_on_submit=True):
-            input_number = st.text_input("이동할 문제 번호 입력 (1부터 시작)", key="move_number_input")
+            input_number = st.text_input("", label_visibility="collapsed",placeholder="예)30",key="move_number_input")
             submitted = st.form_submit_button("🔍 이동")
             if submitted and input_number:
                 try:

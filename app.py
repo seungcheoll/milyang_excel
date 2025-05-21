@@ -39,7 +39,7 @@ elif page == "📝 문제 검수":
 
         # 문제 번호 이동
         with st.form("move_form", clear_on_submit=True):
-            input_number = st.text_input("", label_visibility="collapsed",placeholder="예)30",key="move_number_input")
+            input_number = st.text_input("", label_visibility="collapsed",placeholder="문제 번호 검색 > 예)30",key="move_number_input")
             submitted = st.form_submit_button("🔍 이동")
             if submitted and input_number:
                 try:
